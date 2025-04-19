@@ -1,19 +1,10 @@
 import json
 import subprocess
-import sys
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
 from thirdparty_notice_generator import licenses
-
-TEMPLATE = """
---------------------
-{packagename}
-{projecturl}
-
-{licensetext}
---------------------
-"""
+from thirdparty_notice_generator.template import NOTICE
 
 
 class Nuspec:
@@ -33,16 +24,15 @@ class Nuspec:
         self.id = findtext("id")
         self.version = findtext("version")
         self.authors = findtext("authors")
+        self.copyright = findtext("copyright")
         self.license = findtext("license[@type='expression']")
         self.license_url = findtext("licenseUrl")
+        self.project_url = findtext("projectUrl")
 
         try:
             self.repository = meta.find(ns + "repository").attrib.get("url")
         except Exception:
             self.repository = None
-
-        if not self.repository:
-            self.repository = findtext("projectUrl")
 
 
 class Nuget:
@@ -52,7 +42,7 @@ class Nuget:
             self.proj = self.proj.parent
         self.use_spdx_license_list = False
 
-    def export_third_party_notice(self, output_name: str = "ThirdPartyNotice.txt") -> tuple[str, list[str]]:
+    def export_third_party_notice(self) -> tuple[str, list[str]]:
         project_assets_json = self.get_project_assets(self.proj)
         package_list = self.get_package_list(project_assets_json)
 
@@ -61,15 +51,7 @@ class Nuget:
         for name, value in package_list.items():
             print(name, end=" ")
             try:
-                nuspec = self.get_nuspec(name)
-                license_text = self.get_license_from_package(value["path"])
-
-                if nuspec.repository:
-                    license_text = license_text or licenses.github.get_license_text(nuspec.repository)
-                license_text = license_text or licenses.spdx.get_license_text(nuspec.license)
-                if not license_text:
-                    raise
-                notice += TEMPLATE.format(packagename=name, projecturl=nuspec.repository, licensetext=license_text)
+                notice += self.create_notice(name, value["path"])
                 print("[OK]")
             except Exception as e:
                 missing_list.append(name)
@@ -77,6 +59,18 @@ class Nuget:
                 print(e)
 
         return notice, missing_list
+
+    def create_notice(self, name, path):
+        nuspec = self.get_nuspec(name)
+        license_text = self.get_license_from_package(path)
+
+        if nuspec.repository:
+            license_text = license_text or licenses.github.get_license_text(nuspec.repository)
+
+        license_text = license_text or licenses.spdx.get_license_text(nuspec.license)
+        if not license_text:
+            raise
+        return NOTICE.format(packagename=name, projecturl=nuspec.repository, licensetext=license_text)
 
     def get_project_assets(self, project_root: Path):
         f = project_root / "obj" / "project.assets.json"
@@ -114,3 +108,7 @@ class Nuget:
         g = self.get_global_package_dir()
         p = g / package_name.lower()
         return Nuspec(p)
+
+
+if __name__ == "__main__":
+    print(Nuget(".").create_notice("OpenCvSharp4/4.10.0.20241108", "opencvsharp4/4.10.0.20241108"))

@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 
 from thirdparty_notice_generator.nuget import Nuget
+from thirdparty_notice_generator.template import HEADER
 
 
 def main(project: str, output: str = None):
@@ -17,6 +18,7 @@ def main(project: str, output: str = None):
 
     if output:
         with open(output, "w", encoding="utf-8") as f:
+            f.write(HEADER)
             f.write(notice)
     else:
         print(notice)
@@ -28,7 +30,7 @@ def main(project: str, output: str = None):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 1:
+    if len(sys.argv) < 2:
         print("Usage: thirdparty_notice_generator <projectfile> [<outputfile>]")
         exit()
     proj = sys.argv[1]
