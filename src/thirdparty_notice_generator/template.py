@@ -7,7 +7,7 @@ This project uses the following third-party libraries:
 
 NOTICE = """
 --------------------
-{packagename}
+{packagename}/{version} - {licensename}
 {projecturl}
 
 {licensetext}

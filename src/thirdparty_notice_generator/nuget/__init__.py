@@ -37,7 +37,7 @@ class Nuspec:
 
 class Nuget:
     def __init__(self, project_path: str):
-        self.proj = Path(project_path)
+        self.proj = Path(project_path).expanduser()
         if self.proj.is_file():
             self.proj = self.proj.parent
         self.use_spdx_license_list = False
@@ -52,7 +52,7 @@ class Nuget:
             print(name, end=" ")
             try:
                 notice += self.create_notice(name, value["path"])
-                print("[OK]")
+                print("[Success]")
             except Exception as e:
                 missing_list.append(name)
                 print("[Failed]")
@@ -70,7 +70,13 @@ class Nuget:
         license_text = license_text or licenses.spdx.get_license_text(nuspec.license)
         if not license_text:
             raise
-        return NOTICE.format(packagename=name, projecturl=nuspec.repository, licensetext=license_text)
+        return NOTICE.format(
+            packagename=nuspec.id,
+            version=nuspec.version,
+            licensename=nuspec.license,
+            projecturl=nuspec.repository,
+            licensetext=license_text,
+        )
 
     def get_project_assets(self, project_root: Path):
         f = project_root / "obj" / "project.assets.json"
@@ -108,7 +114,3 @@ class Nuget:
         g = self.get_global_package_dir()
         p = g / package_name.lower()
         return Nuspec(p)
-
-
-if __name__ == "__main__":
-    print(Nuget(".").create_notice("OpenCvSharp4/4.10.0.20241108", "opencvsharp4/4.10.0.20241108"))

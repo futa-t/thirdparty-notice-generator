@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 
 from thirdparty_notice_generator.nuget import Nuget
+from thirdparty_notice_generator.py import PyProject
 from thirdparty_notice_generator.template import HEADER
 
 
@@ -10,6 +11,8 @@ def main(project: str, output: str = None):
     match p.suffix:
         case ".csproj" | ".sln":
             n = Nuget(p)
+        case ".toml" if p.name == "pyproject.toml":
+            n = PyProject(p)
         case _:
             print(f"{project}: Unsupported project type")
             return
