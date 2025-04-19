@@ -30,7 +30,7 @@ class Nuspec:
         self.project_url = findtext("projectUrl")
 
         try:
-            self.repository = meta.find(ns + "repository").attrib.get("url")
+            self.repository = meta.find(ns + "repository").attrib.get("url").removesuffix(".git")
         except Exception:
             self.repository = None
 

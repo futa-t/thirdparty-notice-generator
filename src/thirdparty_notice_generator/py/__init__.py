@@ -10,21 +10,31 @@ from thirdparty_notice_generator.template import NOTICE
 
 class Spec:
     def __init__(self, data: dict):
-        self.id = data.get("name")
-        self.version = data.get("version")
-        self.authors = data.get("author")
-        self.copyright = data.get("author")
-        self.license = data.get("license") or data.get("license_expression")
+        self.id = data.get("name", "")
+        self.version = data.get("version", "")
+        self.authors = data.get("author", "")
+        self.copyright = data.get("author", "")
+        self.license = data.get("license", "") or data.get("license_expression", "")
         self.license_url = None
-        self.repository = None
+        self.repository = ""
         source = data.get("project_urls", {}).get("Source", "")
         if "github" in source:
             self.repository = source
 
         if not self.repository:
-            homepage = data.get("project_urls", {}).get("Homepage", "")
-            if "github" in homepage:
-                self.repository = homepage
+            self.repository = data.get("project_urls", {}).get("Homepage", "")
+
+        license_text = licenses.github.get_license_text(self.repository)
+        self.license_text = license_text or licenses.spdx.get_license_text(self.license) or ""
+
+    def notice(self):
+        return NOTICE.format(
+            packagename=self.id,
+            version=self.version,
+            licensename=self.license,
+            projecturl=self.repository,
+            licensetext=self.license_text,
+        )
 
 
 def extract_package_name(requirement: str) -> str:
@@ -72,28 +82,12 @@ class PyProject:
 
     @staticmethod
     def create_notice(package_name: str) -> str | None:
-        spec = PyProject.get_package_data(package_name)
-        if not spec:
-            return
-
-        if r := spec.repository:
-            license_text = licenses.github.get_license_text(r)
-
-        license_text = license_text or licenses.spdx.get_license_text(spec.license)
-        if not license_text:
-            raise
-        return NOTICE.format(
-            packagename=spec.id,
-            version=spec.version,
-            licensename=spec.license,
-            projecturl=spec.repository,
-            licensetext=license_text,
-        )
+        if spec := PyProject.get_package_data(package_name):
+            return spec.notice()
 
 
 if __name__ == "__main__":
     import sys
 
     p = PyProject(sys.argv[1])
-    # print(p.export_third_party_notice())
-    print(PyProject.create_notice("pyperclip"))
+    print(p.export_third_party_notice())

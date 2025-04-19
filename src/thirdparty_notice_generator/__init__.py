@@ -6,6 +6,18 @@ from thirdparty_notice_generator.py import PyProject
 from thirdparty_notice_generator.template import HEADER
 
 
+def cli():
+    if len(sys.argv) < 2:
+        print("Usage: thirdparty_notice_generator <projectfile> [<outputfile>]")
+        exit()
+    proj = sys.argv[1]
+    output = None
+    if len(sys.argv) > 2:
+        output = sys.argv[2]
+
+    main(proj, output)
+
+
 def main(project: str, output: str = None):
     p = Path(project)
     match p.suffix:

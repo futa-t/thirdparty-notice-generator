@@ -4,16 +4,16 @@ from urllib import request
 
 
 def get_license_text(github_url: str, token: str = None) -> str | None:
-    endpoint = (
-        github_url.removesuffix(".git").replace("https://github.com", "https://api.github.com/repos") + "/license"
-    )
-
-    req = request.Request(endpoint)
-
-    if token:
-        req.headers = {"Accept": "application/vnd.github.v3+json", "Authorization": f"token {token}"}
-
     try:
+        endpoint = (
+            github_url.removesuffix(".git").replace("https://github.com", "https://api.github.com/repos") + "/license"
+        )
+
+        req = request.Request(endpoint)
+
+        if token:
+            req.headers = {"Accept": "application/vnd.github.v3+json", "Authorization": f"token {token}"}
+
         with request.urlopen(req) as res:
             json_text = res.read().decode()
             data = json.loads(json_text)

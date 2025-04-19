@@ -10,7 +10,7 @@ requires-python = ">=3.13"
 dependencies = []
 
 [project.scripts]
-thirdparty-notice-generator = "thirdparty_notice_generator:main"
+thirdparty-notice-generator = "thirdparty_notice_generator:cli"
 
 [build-system]
 requires = ["hatchling"]
