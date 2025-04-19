@@ -16,8 +16,7 @@ def get_license_text(identifier: str) -> str | None:
         if text := load_cache(identifier):
             return text
         url = LICENSE_URL.format(identifier=identifier)
-        print(url)
-        with request.urlopen(LICENSE_URL.format(identifier=identifier)) as res:
+        with request.urlopen(url) as res:
             text = res.read()
             cache = create_cache_file_name(identifier)
             with cache.open("wb") as f:
