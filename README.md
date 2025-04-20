@@ -15,9 +15,15 @@ uv tool install git+https://github.com/futa-t/thirdparty-notice-generator
 Usage: thirdparty-notice-generator <projectfile> [<outputfile>]
 ```
 
+```
+thirdparty-notice-generator ./pyproject.toml ThirdPartyNotice.txt
+```
+
 - 対応してるやつ
     - C#(.NET) - *.csproj, *.sln
     - Python - pyproject.toml
 
-- そのうち対応するやつ
-    - Rust
+## TODO
+- Rust(Cargo.toml)の対応
+- ヘッダーとかのテンプレート設定
+- 差分更新
