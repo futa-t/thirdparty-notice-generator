@@ -1,13 +1,14 @@
 [project]
 name = "thirdparty-notice-generator"
 version = "0.1.0"
-description = "Add your description here"
+description = "Automate create ThirdPartyNotice"
 readme = "README.md"
 authors = [
     { name = "futa-t", email = "143526236+futa-t@users.noreply.github.com" }
 ]
 requires-python = ">=3.13"
 dependencies = []
+license = "MIT"
 
 [project.scripts]
 thirdparty-notice-generator = "thirdparty_notice_generator:cli"

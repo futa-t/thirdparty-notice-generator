@@ -8,7 +8,7 @@ from thirdparty_notice_generator.template import HEADER
 
 def cli():
     if len(sys.argv) < 2:
-        print("Usage: thirdparty_notice_generator <projectfile> [<outputfile>]")
+        print("Usage: thirdparty-notice-generator <projectfile> [<outputfile>]")
         exit()
     proj = sys.argv[1]
     output = None
