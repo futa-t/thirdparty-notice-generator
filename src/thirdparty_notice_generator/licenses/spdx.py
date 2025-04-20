@@ -1,7 +1,7 @@
 from pathlib import Path
 from urllib import request
 
-LICENSE_CACHE_DIR = "~/.cache/licenses"
+LICENSE_CACHE_DIR = "~/.cache/thirdparty_notice_generator"
 LICENSE_URL = "https://raw.githubusercontent.com/spdx/license-list-data/main/text/{identifier}.txt"
 
 
