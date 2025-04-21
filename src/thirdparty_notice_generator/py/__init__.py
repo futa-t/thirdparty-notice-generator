@@ -25,7 +25,7 @@ class Spec:
             self.repository = data.get("project_urls", {}).get("Homepage", "")
 
         license_text = licenses.github.get_license_text(self.repository)
-        self.license_text = license_text or licenses.spdx.get_license_text(self.license) or ""
+        self.license_text = license_text or licenses.spdx.get_license_text_with_cache(self.license) or ""
 
     def notice(self):
         return NOTICE.format(

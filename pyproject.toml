@@ -7,12 +7,18 @@ authors = [
     { name = "futa-t", email = "143526236+futa-t@users.noreply.github.com" }
 ]
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "fucache",
+]
 license = "MIT"
 
 [project.scripts]
 thirdparty-notice-generator = "thirdparty_notice_generator:cli"
+license-get = "thirdparty_notice_generator.licenses.spdx:main"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.uv.sources]
+fucache = { git = "https://github.com/futa-t/fucache" }

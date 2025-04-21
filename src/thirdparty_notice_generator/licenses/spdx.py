@@ -1,42 +1,46 @@
-from pathlib import Path
+import sys
 from urllib import request
 
-LICENSE_CACHE_DIR = "~/.cache/thirdparty_notice_generator"
+from fucache import FuCache
+
 LICENSE_URL = "https://raw.githubusercontent.com/spdx/license-list-data/main/text/{identifier}.txt"
 
 
-def create_cache_file_name(identifier: str) -> Path:
-    cache_dir = Path(LICENSE_CACHE_DIR).expanduser()
-    cache_dir.mkdir(parents=True, exist_ok=True)
-    return (cache_dir / identifier).with_suffix(".txt")
+def get_license_text_with_cache(identifier: str) -> str | None:
+    try:
+        if text := FuCache.load_cache(identifier):
+            return text.decode()
+
+        text = get_license_text(identifier)
+        FuCache.save_cache(identifier, text.encode())
+        return text
+    except Exception:
+        return None
 
 
 def get_license_text(identifier: str) -> str | None:
     try:
-        if text := load_cache(identifier):
-            return text
         url = LICENSE_URL.format(identifier=identifier)
         with request.urlopen(url) as res:
             text = res.read()
-            cache = create_cache_file_name(identifier)
-            with cache.open("wb") as f:
-                f.write(text)
             return text.decode()
     except Exception:
         return None
 
 
-def load_cache(identifier: str) -> str | None:
-    p = Path(LICENSE_CACHE_DIR, identifier).expanduser().with_suffix(".txt")
-    if not p.exists():
-        return None
+def main():
+    if len(sys.argv) > 1:
+        identifier = sys.argv[1]
+    else:
+        identifier = input("License > ")
 
-    try:
-        with p.open("r", encoding="utf-8") as f:
-            return f.read()
-    except Exception:
-        return None
+    if license := get_license_text(identifier):
+        with open(f"LICENSE-{identifier}.txt", "w", encoding="utf-8") as f:
+            f.write(license)
+            print(license)
+    else:
+        print(identifier, "is not found.")
 
 
 if __name__ == "__main__":
-    print(get_license_text(input("License > ")))
+    main()
