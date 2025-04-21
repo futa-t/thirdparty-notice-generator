@@ -67,7 +67,7 @@ class Nuget:
         if nuspec.repository:
             license_text = license_text or licenses.github.get_license_text(nuspec.repository)
 
-        license_text = license_text or licenses.spdx.get_license_text(nuspec.license)
+        license_text = license_text or licenses.spdx.get_license_text_with_cache(nuspec.license)
         if not license_text:
             raise
         return NOTICE.format(

@@ -1,9 +1,13 @@
 import sys
 from pathlib import Path
 
+from fucache import FuCache
+
 from thirdparty_notice_generator.nuget import Nuget
 from thirdparty_notice_generator.py import PyProject
 from thirdparty_notice_generator.template import HEADER
+
+FuCache.init("thirdparty_notice_generator")
 
 
 def cli():

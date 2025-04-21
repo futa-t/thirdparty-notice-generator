@@ -3,6 +3,17 @@ revision = 1
 requires-python = ">=3.13"
 
 [[package]]
+name = "fucache"
+version = "0.1.2"
+source = { git = "https://github.com/futa-t/fucache#d17b0cd9ba60759866c46796f7495151404a84d3" }
+
+[[package]]
 name = "thirdparty-notice-generator"
 version = "0.1.0"
 source = { editable = "." }
+dependencies = [
+    { name = "fucache" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "fucache", git = "https://github.com/futa-t/fucache" }]
