@@ -4,11 +4,13 @@ from pathlib import Path
 from xml.etree import ElementTree as ET
 
 from thirdparty_notice_generator import licenses
+from thirdparty_notice_generator.base import PackageBase
 from thirdparty_notice_generator.template import NOTICE
 
 
-class Nuspec:
+class Nuspec(PackageBase):
     def __init__(self, package_path: Path):
+        self.path = package_path
         if len(nuspecs := list(package_path.glob("*.nuspec"))) > 0:
             self.nuspec = nuspecs[0]
         else:
@@ -21,18 +23,64 @@ class Nuspec:
         def findtext(tag):
             return meta.findtext(f"{ns}{tag}")
 
-        self.id = findtext("id")
-        self.version = findtext("version")
-        self.authors = findtext("authors")
-        self.copyright = findtext("copyright")
-        self.license = findtext("license[@type='expression']")
+        self._package_name = findtext("id")
+        self._version = findtext("version")
+        self._authors = findtext("authors")
+        self._copyright = findtext("copyright")
+        self._license_name = findtext("license[@type='expression']")
         self.license_url = findtext("licenseUrl")
         self.project_url = findtext("projectUrl")
 
         try:
-            self.repository = meta.find(ns + "repository").attrib.get("url").removesuffix(".git")
+            self._repository = meta.find(ns + "repository").attrib.get("url").removesuffix(".git")
         except Exception:
-            self.repository = None
+            self._repository = ""
+
+        license_text = licenses.directory.get_license_text(self.path)
+        license_text = license_text or licenses.github.get_license_text(self.repository)
+        self._license_text = license_text or licenses.spdx.get_license_text_with_cache(self._license_name) or ""
+
+    @property
+    def package_name(self):
+        return self._package_name
+
+    @property
+    def version(self) -> str:
+        return self._version
+
+    @property
+    def author(self) -> str:
+        return self._author
+
+    @property
+    def copyright(self) -> str:
+        return self._copyright
+
+    @property
+    def license_name(self) -> str:
+        return self._license_name
+
+    @property
+    def license_text(self) -> str:
+        return self._license_text
+
+    @license_text.setter
+    def license_text(self, value):
+        self._license_text = value
+
+    @property
+    def repository(self) -> str:
+        return self._repository
+
+    @property
+    def notice(self) -> str:
+        return NOTICE.format(
+            packagename=self.package_name,
+            version=self.version,
+            licensename=self.license_name,
+            projecturl=self.repository,
+            licensetext=self.license_text,
+        )
 
 
 class Nuget:
@@ -48,10 +96,10 @@ class Nuget:
 
         notice = ""
         missing_list = []
-        for name, value in package_list.items():
+        for name in package_list.keys():
             print(name, end=" ")
             try:
-                notice += self.create_notice(name, value["path"])
+                notice += self.create_notice(name)
                 print("[Success]")
             except Exception as e:
                 missing_list.append(name)
@@ -60,23 +108,11 @@ class Nuget:
 
         return notice, missing_list
 
-    def create_notice(self, name, path):
-        nuspec = self.get_nuspec(name)
-        license_text = self.get_license_from_package(path)
-
-        if nuspec.repository:
-            license_text = license_text or licenses.github.get_license_text(nuspec.repository)
-
-        license_text = license_text or licenses.spdx.get_license_text_with_cache(nuspec.license)
-        if not license_text:
-            raise
-        return NOTICE.format(
-            packagename=nuspec.id,
-            version=nuspec.version,
-            licensename=nuspec.license,
-            projecturl=nuspec.repository,
-            licensetext=license_text,
-        )
+    def create_notice(self, package_name: str) -> str:
+        g = self.get_global_package_dir()
+        p = g / package_name.lower()
+        nuspec = Nuspec(p)
+        return nuspec.notice
 
     def get_project_assets(self, project_root: Path):
         f = project_root / "obj" / "project.assets.json"
@@ -85,8 +121,7 @@ class Nuget:
         return f
 
     def get_global_package_dir(self) -> Path:
-        p = Path("~/.nuget/packages").expanduser()
-        if p.exists():
+        if (p := Path.home() / ".nuget" / "packages").exists():
             return p
 
         res = subprocess.run(["dotnet", "nuget", "locals", "global-packages", "--list"], stdout=subprocess.PIPE)
@@ -96,21 +131,3 @@ class Nuget:
         with open(project_assets_json, "r", encoding="utf-8") as f:
             data = json.load(f)
             return data.get("libraries", {})
-
-    def get_license_from_package(self, package_name: str) -> str | None:
-        g = self.get_global_package_dir()
-        p = g / package_name.lower()
-        license_file = list(p.glob("license.txt", case_sensitive=False))
-        if len(license_file) > 0:
-            try:
-                with license_file[0].open("r", encoding="utf-8") as f:
-                    return f.read()
-            except Exception as e:
-                print(p)
-                print(e)
-                return None
-
-    def get_nuspec(self, package_name: str) -> Nuspec:
-        g = self.get_global_package_dir()
-        p = g / package_name.lower()
-        return Nuspec(p)

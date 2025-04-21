@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
 
-class Package(metaclass=ABCMeta):
+class PackageBase(metaclass=ABCMeta):
     @property
     @abstractmethod
     def package_name(self) -> str: ...
