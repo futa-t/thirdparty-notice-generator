@@ -1,1 +1,1 @@
-from thirdparty_notice_generator.licenses import github, spdx
+from thirdparty_notice_generator.licenses import directory, github, spdx

@@ -5,33 +5,76 @@ from pathlib import Path
 from urllib import request
 
 from thirdparty_notice_generator import licenses
+from thirdparty_notice_generator.base import PackageBase
 from thirdparty_notice_generator.template import NOTICE
 
 
-class Spec:
-    def __init__(self, data: dict):
-        self.id = data.get("name", "")
-        self.version = data.get("version", "")
-        self.authors = data.get("author", "")
-        self.copyright = data.get("author", "")
-        self.license = data.get("license", "") or data.get("license_expression", "")
-        self.license_url = None
-        self.repository = ""
+class PySpec(PackageBase):
+    def __init__(self, package_name: str):
+        data = self.get_package_data(package_name)
+
+        self._package_name = data.get("name", "")
+        self._version = data.get("version", "")
+        self._authors = data.get("author", "")
+        self._copyright = data.get("author", "")
+        self._license = data.get("license", "") or data.get("license_expression", "")
+        self._license_url = None
+        self._repository = ""
+
         source = data.get("project_urls", {}).get("Source", "")
         if "github" in source:
-            self.repository = source
+            self._repository = source
 
-        if not self.repository:
-            self.repository = data.get("project_urls", {}).get("Homepage", "")
+        if not self._repository:
+            self._repository = data.get("project_urls", {}).get("Homepage", "")
 
-        license_text = licenses.github.get_license_text(self.repository)
-        self.license_text = license_text or licenses.spdx.get_license_text_with_cache(self.license) or ""
+        license_text = licenses.github.get_license_text(self._repository)
+        self._license_text = license_text or licenses.spdx.get_license_text_with_cache(self._license) or ""
 
+    def get_package_data(self, package_name: str) -> dict:
+        url = f"https://pypi.org/pypi/{package_name}/json"
+        with request.urlopen(url) as res:
+            data = json.loads(res.read())
+            return data["info"]
+
+    @property
+    def package_name(self):
+        return self._package_name
+
+    @property
+    def version(self) -> str:
+        return self._version
+
+    @property
+    def author(self) -> str:
+        return self._author
+
+    @property
+    def copyright(self) -> str:
+        return self._copyright
+
+    @property
+    def license_name(self) -> str:
+        return self._license_name
+
+    @property
+    def license_text(self) -> str:
+        return self._license_text
+
+    @license_text.setter
+    def license_text(self, value):
+        self._license_text = value
+
+    @property
+    def repository(self) -> str:
+        return self._repository
+
+    @property
     def notice(self):
         return NOTICE.format(
-            packagename=self.id,
+            packagename=self.package_name,
             version=self.version,
-            licensename=self.license,
+            licensename=self.license_text,
             projecturl=self.repository,
             licensetext=self.license_text,
         )
@@ -62,32 +105,11 @@ class PyProject:
         for package in self.dependencies:
             print(package, end=" ")
             try:
-                notice += PyProject.create_notice(package)
+                spec = PySpec(package)
+                notice += spec.notice
                 print("[Success]")
             except Exception as e:
                 missing_list.append(package)
                 print("[Failed]")
                 print(e)
         return notice, missing_list
-
-    @staticmethod
-    def get_package_data(package_name: str) -> Spec | None:
-        url = f"https://pypi.org/pypi/{package_name}/json"
-        try:
-            with request.urlopen(url) as res:
-                data = json.loads(res.read())
-                return Spec(data["info"])
-        except Exception:
-            return None
-
-    @staticmethod
-    def create_notice(package_name: str) -> str | None:
-        if spec := PyProject.get_package_data(package_name):
-            return spec.notice()
-
-
-if __name__ == "__main__":
-    import sys
-
-    p = PyProject(sys.argv[1])
-    print(p.export_third_party_notice())
