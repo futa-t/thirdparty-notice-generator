@@ -4,6 +4,8 @@ import tomllib
 from pathlib import Path
 from urllib import request
 
+from fucache import FuCache
+
 from thirdparty_notice_generator import licenses
 from thirdparty_notice_generator.base import PackageBase
 from thirdparty_notice_generator.template import NOTICE
@@ -96,8 +98,7 @@ class PyProject:
         with self.proj.open("rb") as f:
             data = tomllib.load(f)
 
-        dependencies = data["project"].get("dependencies", [])
-        self.dependencies = list(map(extract_package_name, dependencies))
+        self.dependencies = data["project"].get("dependencies", [])
 
     def export_third_party_notice(self) -> tuple[str, list[str]]:
         notice = ""
@@ -114,5 +115,11 @@ class PyProject:
         return notice, missing_list
 
     def create_notice(self, package_name: str) -> str:
-        spec = PySpec(package_name)
+        if cache := FuCache.load_cache(package_name):
+            print("[Using Cache]", end="")
+            return cache.decode()
+
+        spec = PySpec(extract_package_name(package_name))
+
+        FuCache.save_cache(package_name, spec.notice.encode())
         return spec.notice

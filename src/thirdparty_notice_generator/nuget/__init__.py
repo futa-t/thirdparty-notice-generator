@@ -3,6 +3,8 @@ import subprocess
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
+from fucache import FuCache
+
 from thirdparty_notice_generator import licenses
 from thirdparty_notice_generator.base import PackageBase
 from thirdparty_notice_generator.template import NOTICE
@@ -111,7 +113,13 @@ class Nuget:
     def create_notice(self, package_name: str) -> str:
         g = self.get_global_package_dir()
         p = g / package_name.lower()
+        n = package_name.replace("/", "_")
+        if cache := FuCache.load_cache(n):
+            print("[Using Cache]", end="")
+            return cache.decode()
+
         nuspec = Nuspec(p)
+        FuCache.save_cache(n, nuspec.notice.encode())
         return nuspec.notice
 
     def get_project_assets(self, project_root: Path):
