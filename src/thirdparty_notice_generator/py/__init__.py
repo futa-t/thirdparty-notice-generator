@@ -102,14 +102,17 @@ class PyProject:
     def export_third_party_notice(self) -> tuple[str, list[str]]:
         notice = ""
         missing_list = []
-        for package in self.dependencies:
-            print(package, end=" ")
+        for package_name in self.dependencies:
+            print(package_name, end=" ")
             try:
-                spec = PySpec(package)
-                notice += spec.notice
+                notice += self.create_notice(package_name)
                 print("[Success]")
             except Exception as e:
-                missing_list.append(package)
+                missing_list.append(package_name)
                 print("[Failed]")
                 print(e)
         return notice, missing_list
+
+    def create_notice(self, package_name: str) -> str:
+        spec = PySpec(package_name)
+        return spec.notice

@@ -96,13 +96,13 @@ class Nuget:
 
         notice = ""
         missing_list = []
-        for name in package_list.keys():
-            print(name, end=" ")
+        for package_name in package_list.keys():
+            print(package_name, end=" ")
             try:
-                notice += self.create_notice(name)
+                notice += self.create_notice(package_name)
                 print("[Success]")
             except Exception as e:
-                missing_list.append(name)
+                missing_list.append(package_name)
                 print("[Failed]")
                 print(e)
 
