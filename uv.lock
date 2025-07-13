@@ -1,5 +1,5 @@
 version = 1
-revision = 1
+revision = 2
 requires-python = ">=3.13"
 
 [[package]]
@@ -9,7 +9,7 @@ source = { git = "https://github.com/futa-t/fucache#d17b0cd9ba60759866c46796f749
 
 [[package]]
 name = "thirdparty-notice-generator"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "." }
 dependencies = [
     { name = "fucache" },
