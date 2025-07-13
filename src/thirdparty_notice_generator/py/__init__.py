@@ -13,13 +13,13 @@ from thirdparty_notice_generator.template import NOTICE
 
 class PySpec(PackageBase):
     def __init__(self, package_name: str):
-        data = self.get_package_data(package_name)
+        data = self.get_package_data(package_name) or {}
 
         self._package_name = data.get("name", "")
         self._version = data.get("version", "")
         self._authors = data.get("author", "")
         self._copyright = data.get("author", "")
-        self._license = data.get("license", "") or data.get("license_expression", "")
+        self._license = data.get("license", "") or data.get("license_expression", "") or ""
         self._license_url = None
         self._repository = ""
 
@@ -57,7 +57,7 @@ class PySpec(PackageBase):
 
     @property
     def license_name(self) -> str:
-        return self._license_name
+        return self._license
 
     @property
     def license_text(self) -> str:
@@ -76,7 +76,7 @@ class PySpec(PackageBase):
         return NOTICE.format(
             packagename=self.package_name,
             version=self.version,
-            licensename=self.license_text,
+            licensename=self.license_name,
             projecturl=self.repository,
             licensetext=self.license_text,
         )

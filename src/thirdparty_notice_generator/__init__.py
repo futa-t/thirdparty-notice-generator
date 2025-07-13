@@ -4,6 +4,7 @@ from pathlib import Path
 
 from fucache import FuCache
 
+from thirdparty_notice_generator.cargo import Cargo
 from thirdparty_notice_generator.nuget import Nuget
 from thirdparty_notice_generator.py import PyProject
 from thirdparty_notice_generator.template import HEADER
@@ -32,6 +33,8 @@ def main(project: str, output: str = None):
             n = Nuget(p)
         case ".toml" if p.name == "pyproject.toml":
             n = PyProject(p)
+        case ".toml" if p.name == "Cargo.toml":
+            n = Cargo(p)
         case _:
             print(f"{project}: Unsupported project type")
             return

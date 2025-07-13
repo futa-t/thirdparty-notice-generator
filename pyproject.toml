@@ -1,15 +1,13 @@
 [project]
 name = "thirdparty-notice-generator"
-version = "0.1.1"
+version = "0.2.0"
 description = "Automate create ThirdPartyNotice"
 readme = "README.md"
 authors = [
-    { name = "futa-t", email = "143526236+futa-t@users.noreply.github.com" }
+    { name = "futa-t", email = "143526236+futa-t@users.noreply.github.com" },
 ]
 requires-python = ">=3.13"
-dependencies = [
-    "fucache",
-]
+dependencies = ["fucache"]
 license = "MIT"
 
 [project.scripts]
